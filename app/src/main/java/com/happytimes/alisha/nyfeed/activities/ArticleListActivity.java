@@ -109,8 +109,8 @@ public class ArticleListActivity extends AppCompatActivity {
                 Doc mArticle = articlesList.get(position);
                 Context mContext = view.getContext();
                 //Intent intent = new Intent(mContext, ArticleDetailActivity.class);
-                Intent intent = new Intent(mContext, MainActivity.class);
-                intent.putExtra(MainActivity.ARG_ITEM, Parcels.wrap(mArticle));
+                Intent intent = new Intent(mContext, ArticleDetailActivity.class);
+                intent.putExtra(ArticleDetailActivity.ARG_ITEM, Parcels.wrap(mArticle));
                 mContext.startActivity(intent);
             }
 
