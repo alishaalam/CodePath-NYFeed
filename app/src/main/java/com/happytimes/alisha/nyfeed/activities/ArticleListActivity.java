@@ -1,8 +1,10 @@
 package com.happytimes.alisha.nyfeed.activities;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -15,20 +17,25 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.DatePicker;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.happytimes.alisha.nyfeed.R;
 import com.happytimes.alisha.nyfeed.adapter.ArticleAdapter;
+import com.happytimes.alisha.nyfeed.fragments.DatePickerFragment;
+import com.happytimes.alisha.nyfeed.fragments.SettingsDialogFragment;
 import com.happytimes.alisha.nyfeed.helper.JacksonRequest;
 import com.happytimes.alisha.nyfeed.helper.VolleySingleton;
+import com.happytimes.alisha.nyfeed.listeners.EndlessRecyclerViewScrollListener;
 import com.happytimes.alisha.nyfeed.model.ArticleCollection;
 import com.happytimes.alisha.nyfeed.model.Doc;
 
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import butterknife.BindView;
@@ -42,14 +49,14 @@ import butterknife.ButterKnife;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ArticleListActivity extends AppCompatActivity {
+public class ArticleListActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener  {
 
     private static final String TAG = ArticleListActivity.class.getSimpleName();
     public static final String NY_ARTICLE_SEARCH_URL = "http://api.nytimes.com/svc/search/v2/articlesearch.json";
     public static final String SEARCH_QUERY = "?q=";
-    public static final String SEARCH_QUERY_TERM = "Obama";
+    public static String SEARCH_QUERY_TERM = "Obama";
     public static final String PAGE = "&page=";
-    public static final int PAGE_NUMBER = 1;
+    public static int PAGE_NUMBER = 1;
     public static final String SORT = "&sort=newest";
     public static final String API_KEY = "&api-key=98fbeb4d611e402ba1855e629b652a08";
 
@@ -74,6 +81,7 @@ public class ArticleListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_list);
 
+
         ButterKnife.bind(this);
         //To reduce overdraw
         getWindow().setBackgroundDrawable(null);
@@ -91,8 +99,6 @@ public class ArticleListActivity extends AppCompatActivity {
             // activity should be in two-pane mode.
             mTwoPane = true;
         }
-
-        searchArticles(NY_ARTICLE_SEARCH_URL+SEARCH_QUERY+SEARCH_QUERY_TERM+PAGE+PAGE_NUMBER+SORT+API_KEY);
     }
 
     private void initializeRecyclerView() {
@@ -108,7 +114,6 @@ public class ArticleListActivity extends AppCompatActivity {
             public void onClick(View view, int position) {
                 Doc mArticle = articlesList.get(position);
                 Context mContext = view.getContext();
-                //Intent intent = new Intent(mContext, ArticleDetailActivity.class);
                 Intent intent = new Intent(mContext, ArticleDetailActivity.class);
                 intent.putExtra(ArticleDetailActivity.ARG_ITEM, Parcels.wrap(mArticle));
                 mContext.startActivity(intent);
@@ -120,8 +125,15 @@ public class ArticleListActivity extends AppCompatActivity {
             }
         }));
 
-    }
+        recyclerView.addOnScrollListener(new EndlessRecyclerViewScrollListener(glm) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                PAGE_NUMBER++;
+                searchArticles(NY_ARTICLE_SEARCH_URL+SEARCH_QUERY+SEARCH_QUERY_TERM+PAGE+PAGE_NUMBER+SORT+API_KEY);
+            }
+        });
 
+    }
 
     private void searchArticles(String url) {
         JacksonRequest<ArticleCollection> jacksonRequest = new JacksonRequest<>
@@ -170,8 +182,8 @@ public class ArticleListActivity extends AppCompatActivity {
 
                 // workaround to avoid issues with some emulators and keyboard devices firing twice if a keyboard enter is used
                 // see https://code.google.com/p/android/issues/detail?id=24599
-                query = query.trim();
-                searchArticles(NY_ARTICLE_SEARCH_URL+SEARCH_QUERY+query+PAGE+PAGE_NUMBER+SORT+API_KEY);
+                SEARCH_QUERY_TERM = query.trim();
+                searchArticles(NY_ARTICLE_SEARCH_URL+SEARCH_QUERY+SEARCH_QUERY_TERM+PAGE+PAGE_NUMBER+SORT+API_KEY);
                 searchView.clearFocus();
                 return true;
             }
@@ -188,21 +200,31 @@ public class ArticleListActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
-                setupSettingsDialog();
-                return true;
-            case R.id.action_share:
-                showShareDialog();
-                return true;
-        default:
-            return super.onOptionsItemSelected(item);
+                 showEditDialog();
+                 return true;
+            default:
+                 return super.onOptionsItemSelected(item);
         }
     }
 
-    private void showShareDialog() {
-
+    private void showEditDialog() {
+        FragmentManager fm = getSupportFragmentManager();
+        SettingsDialogFragment editNameDialogFragment = SettingsDialogFragment.newInstance("Some Title");
+        editNameDialogFragment.show(fm, "fragment_edit_name");
     }
 
-    private void setupSettingsDialog() {
-
+    public void showDatePickerDialog() {
+        DatePickerFragment newFragment = new DatePickerFragment();
+        newFragment.show(getSupportFragmentManager(), "datePicker");
     }
+
+    @Override
+    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+        // store the values selected into a Calendar instance
+        final Calendar c = Calendar.getInstance();
+        c.set(Calendar.YEAR, year);
+        c.set(Calendar.MONTH, monthOfYear);
+        c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+    }
+
 }

@@ -2,4 +2,6 @@
     <string name="app_name">NYFeed</string>
     <string name="title_item_detail">Item Detail</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="begin_date">Begin Date:</string>
+    <string name="end_date">End Date:</string>
 </resources>
