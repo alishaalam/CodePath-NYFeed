@@ -3,5 +3,19 @@
     <string name="title_item_detail">Item Detail</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="begin_date">Begin Date:</string>
-    <string name="end_date">End Date:</string>
+    <string name="sort_order">Sort Order:</string>
+    <string name="news_desk_values">News Desk Values</string>
+    <string name="arts">Arts</string>
+    <string name="fashion_and_style"><![CDATA[Fashion & Style]]></string>
+    <string name="sports">Sports</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="no_connectivity_text">No Network Connection</string>
+    <string name="dismiss_action">Dismiss</string>
+    <string name="no_internet_text">Device is not connected to the internet</string>
+
+    <string-array name="sort_array">
+    <item>Oldest</item>
+    <item>Newest</item>
+    </string-array>
 </resources>
