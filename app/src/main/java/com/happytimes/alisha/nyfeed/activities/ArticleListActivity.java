@@ -3,7 +3,6 @@ package com.happytimes.alisha.nyfeed.activities;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -59,7 +58,6 @@ public class ArticleListActivity extends AppCompatActivity  implements FilterDia
     public static String SEARCH_QUERY_TERM = "";
     public static final String PAGE = "&page=";
     public static int PAGE_NUMBER = 1;
-
     public static final String BEGIN_DATE = "?begin_date=";
     public static  String BEGIN_DATE_VALUE = "";
     public static final String SORT = "&sort=";
@@ -93,8 +91,6 @@ public class ArticleListActivity extends AppCompatActivity  implements FilterDia
 
         initializeRecyclerView();
 
-        //https://api.nytimes.com/svc/search/v2/articlesearch.json?begin_date=20160112&sort=oldest&fq=news_desk:(%22Education%22%20%22Health%22)&api-key=227c750bb7714fc39ef1559ef1bd8329
-        //https://api.nytimes.com/svc/search/v2/articlesearch.json?begin_date=20160801&sort=oldest
         mFilters = new SearchFilters();
         BEGIN_DATE_VALUE = mFilters.getBeginDate();
         SORT_ORDER_VALUE = mFilters.getSort_order();
@@ -125,11 +121,7 @@ public class ArticleListActivity extends AppCompatActivity  implements FilterDia
     }
 
     private void initializeRecyclerView() {
-        /*GridLayoutManager glm = new GridLayoutManager(this, 2);
-        glm.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(glm);
-*/
-        StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(4, StaggeredGridLayoutManager.VERTICAL);
+        StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(sglm);
 
         articleAdapter =  new ArticleAdapter(this, articlesList);
@@ -155,7 +147,7 @@ public class ArticleListActivity extends AppCompatActivity  implements FilterDia
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
                 PAGE_NUMBER++;
-                searchArticles(NY_ARTICLE_SEARCH_URL+SEARCH_QUERY+SEARCH_QUERY_TERM+PAGE+PAGE_NUMBER+SORT+API_KEY);
+                searchArticles(NY_ARTICLE_SEARCH_URL+SEARCH_QUERY+SEARCH_QUERY_TERM+PAGE+PAGE_NUMBER+SORT+mFilters.getSort_order()+API_KEY);
             }
         });
     }
@@ -189,13 +181,6 @@ public class ArticleListActivity extends AppCompatActivity  implements FilterDia
         MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
 
-        // Create the TypeFace from the TTF asset
-        Typeface font = Typeface.createFromAsset(getAssets(), "fonts/Chantelli_Antiqua.ttf");
-        // Assign the typeface to the view
-        //searchItem.setTypeface(font);
-
-        searchItem.expandActionView();
-        searchView.requestFocus();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -203,8 +188,11 @@ public class ArticleListActivity extends AppCompatActivity  implements FilterDia
 
                 // workaround to avoid issues with some emulators and keyboard devices firing twice if a keyboard enter is used
                 // see https://code.google.com/p/android/issues/detail?id=24599
+
+                resetSearch();
                 SEARCH_QUERY_TERM = query.trim();
-                searchArticles(NY_ARTICLE_SEARCH_URL+SEARCH_QUERY+SEARCH_QUERY_TERM+PAGE+PAGE_NUMBER+SORT+API_KEY);
+                String test = NY_ARTICLE_SEARCH_URL+SEARCH_QUERY+SEARCH_QUERY_TERM+PAGE+PAGE_NUMBER+SORT+mFilters.getSort_order()+API_KEY;
+                searchArticles(test);
                 searchView.clearFocus();
                 return true;
             }
@@ -215,6 +203,15 @@ public class ArticleListActivity extends AppCompatActivity  implements FilterDia
             }
         });
         return super.onCreateOptionsMenu(menu);
+    }
+
+    private void resetSearch() {
+        for(int i=0;i<articlesList.size();i++) {
+            articlesList.remove(i);
+        }
+        articlesList = new ArrayList<>();
+        articleAdapter.notifyDataSetChanged();
+        PAGE_NUMBER=1;
     }
 
     @Override
@@ -245,8 +242,6 @@ public class ArticleListActivity extends AppCompatActivity  implements FilterDia
         mFilters.news_desk_values = filters.getNews_desk_values();
         Log.d(TAG, "Returned values - begin date" + mFilters.beginDate + "  Sort order: " + mFilters.sort_order + " News Desk: " + mFilters.news_desk_values);
     }
-
-
 
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager

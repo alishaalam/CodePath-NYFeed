@@ -58,7 +58,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleViewHolder> {
 
             Glide.with(mContext)
                     .load(list.get(0).getUrl())
-                    .placeholder(R.drawable.ic_image_placeholder)
+                    .placeholder(R.mipmap.ic_launcher)
                     .into(holder.vArticleImage);
         }
     }
